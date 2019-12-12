@@ -44,23 +44,22 @@ let timerJSSharedInstance = JSTimer()
     }
     
     func createTimer(callback: JSValue, ms: Double, repeats : Bool) -> String {
-        var timeInterval  = ms/1000.0
+        let timeInterval  = ms/1000.0
         
         let uuid = NSUUID().uuidString
         
         if timeInterval == 0 {
-            timeInterval += 0.1
+            callback.call(withArguments: nil)
+        } else {
+            DispatchQueue.main.async(execute: {
+                let timer = Timer.scheduledTimer(timeInterval: timeInterval,
+                                                 target: self,
+                                                 selector: #selector(self.callJsCallback),
+                                                 userInfo: callback,
+                                                 repeats: repeats)
+                self.timers[uuid] = timer
+            })
         }
-        
-        DispatchQueue.main.async(execute: {
-            let timer = Timer.scheduledTimer(timeInterval: timeInterval,
-                                             target: self,
-                                             selector: #selector(self.callJsCallback),
-                                             userInfo: callback,
-                                             repeats: repeats)
-            self.timers[uuid] = timer
-        })
-        
         
         return uuid
     }
