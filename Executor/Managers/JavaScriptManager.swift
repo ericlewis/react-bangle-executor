@@ -6,13 +6,11 @@ class JavaScriptManager {
     let bangleManager: BangleManager
     let uiManager: UIManager
     var window: JSValue?
-    var app: String
     
     var loadAppCancellable: AnyCancellable?
     var apps: [String: JavaScriptManager] = [:]
 
-    init(app: String = "launcher", bangleManager: BangleManager = .shared) {
-        self.app = app
+    init(bangleManager: BangleManager = .shared) {
         self.bangleManager = bangleManager
         self.uiManager = UIManager()
         
