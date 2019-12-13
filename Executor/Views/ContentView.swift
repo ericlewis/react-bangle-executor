@@ -15,10 +15,16 @@ struct ContentView: View {
     var body: some View {
         VStack {
             Text(manager.isReady ? "Ready!" : "Waiting for Bangle...")
-            TextField("Code", text: $code)
-            Button("Send Command", action: sendCommand)
-            .disabled(!manager.isReady)
+                .foregroundColor(.secondary)
+            if manager.isReady {
+                TextField("Code", text: $code)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                Button("Send Command", action: sendCommand)
+                Button("Install App Launcher", action: {})
+                    .padding()
+            }
         }
+        .padding()
     }
 }
 

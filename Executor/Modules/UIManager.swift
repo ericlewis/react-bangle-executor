@@ -2,7 +2,7 @@ import JavaScriptCore
 
 typealias UIManagerType = NSObject & JSModule & UIManagerExports
 @objc protocol UIManagerExports: JSExport {
-    func log(_ command: String)
+    func flush(_ command: String)
 }
 
 protocol UIManagerDelegate: AnyObject {
@@ -13,7 +13,7 @@ class UIManager: UIManagerType {
     static let moduleName = "UIManager"
     weak var delegate: UIManagerDelegate?
     
-    func log(_ command: String) {
+    func flush(_ command: String) {
         delegate?.flush(command)
     }
 }

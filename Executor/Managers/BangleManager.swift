@@ -82,19 +82,32 @@ class BangleManager: NSObject, CBCentralManagerDelegate, CBPeripheralManagerDele
         cb.stopScan()
         cb.connect(peripheral, options: nil)
     }
+    
+    var isBusy = false
 }
 
 extension BangleManager {
     func send(command: String) throws {
         commandQueue.enqueue("\(command)\r")
         
+        guard !isBusy else { return }
         guard let char = writeChar else {
             throw BangleManagerError.cantWrite
         }
         
-        guard let chunks = commandQueue.dequeue()?.components(withMaxLength: 16) else { return }
-        chunks.forEach {
-            bangle?.writeValue(Data($0.utf8), for: char, type: .withResponse)
+        func run() {
+            isBusy = true
+            guard let chunks = commandQueue.dequeue()?.components(withMaxLength: 16) else { return }
+            chunks.forEach {
+                bangle?.writeValue(Data($0.utf8), for: char, type: .withResponse)
+            }
+            isBusy = false
+            
+            if !commandQueue.isEmpty {
+                run()
+            }
         }
+        
+        run()
     }
 }

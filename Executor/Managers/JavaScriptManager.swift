@@ -57,7 +57,7 @@ class JavaScriptManager {
         JSPromise.register(context)
         Fetch.register(context)
         EventEmitter.register(context)
-        context["console"] = uiManager
+        context["UIManager"] = uiManager
         context["loadApp"] = loadApp
     }
     
