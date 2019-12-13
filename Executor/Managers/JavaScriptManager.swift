@@ -29,7 +29,7 @@ class JavaScriptManager {
     }
     
     func setupErrorPrototype() {
-        context?.evaluateScript("""
+        context!.evaluateScript("""
             Error.prototype.isError = () => {return true}
         """)
     }
@@ -50,7 +50,7 @@ class JavaScriptManager {
     }
     
     func setupModules() {
-        guard let context = context else { return }
+        let context = self.context!
         let loadApp: @convention(block) (String) -> Void = { app in
             self.loadApp(name: app)
         }
@@ -65,7 +65,7 @@ class JavaScriptManager {
     
     func setupWindow() {
         window = JSValue(newObjectIn: context)
-        context?.setObject(window, forKeyedSubscript: "window" as NSString)
+        context!.setObject(window, forKeyedSubscript: "window" as NSString)
     }
     
     func loadApp(name: String) {
@@ -77,18 +77,21 @@ class JavaScriptManager {
                 .eraseToAnyPublisher()
         }
         
-        guard let runnerRuntime = URL(string: "\(Self.rootEndpoint + name)/runtime.js") else { return }
-        guard let runnerVendor = URL(string: "\(Self.rootEndpoint + name)/vendor.js") else { return }
-        guard let runnerMain = URL(string: "\(Self.rootEndpoint + name)/main.js") else { return }
+        guard let runtime = URL(string: "\(Self.rootEndpoint + name)/runtime.js") else { return }
+        guard let vendor = URL(string: "\(Self.rootEndpoint + name)/vendor.js") else { return }
+        guard let main = URL(string: "\(Self.rootEndpoint + name)/main.js") else { return }
         
         loadAppCancellable?.cancel()
-        loadAppCancellable = Publishers.Zip3(makeStringPublisher(for: runnerRuntime), makeStringPublisher(for: runnerVendor), makeStringPublisher(for: runnerMain))
-            .map { $0.0 + $0.1 + $0.2 }
+        loadAppCancellable = Publishers.Zip3(makeStringPublisher(for: runtime), makeStringPublisher(for: vendor), makeStringPublisher(for: main))
             .receive(on: RunLoop.main)
             .sink(receiveCompletion: { _ in }) {
+                self.window?.deleteProperty("buttonPressed")
+                self.window = nil
                 self.context = JSContext()
                 self.setupJS()
-                self.context?.evaluateScript($0)
+                self.context!.evaluateScript($0.0)
+                self.context!.evaluateScript($0.1)
+                self.context!.evaluateScript($0.2)
             }
     }
 }
